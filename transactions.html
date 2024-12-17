@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <!-- Added Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- css file -->
+    <link rel="stylesheet" href="file2.css">
+    <!-- fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Arvo:ital,wght@0,400;0,700;1,400;1,700&family=Bellefair&family=Edu+AU+VIC+WA+NT+Pre:wght@400..700&family=Exo+2:ital,wght@0,100..900;1,100..900&family=Happy+Monkey&family=Kalam:wght@300;400;700&family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap"
+        rel="stylesheet">
+    <!-- pdf-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+</head>
+
+<body>
+    <div class="container">
+        <h1>Transactions</h1>
+
+        <!-- Filters Section -->
+        <div class="filter-section">
+            <select id="filterType" onchange="filterTransactions()">
+                <option value="">All Types</option>
+                <option value="income">Income</option>
+                <option value="expense">Expense</option>
+            </select>
+
+            <select id="filterCategory" onchange="filterTransactions()">
+                <option value="">All Categories</option>
+                <option value="Salary">Salary</option>
+                <option value="Groceries">Groceries</option>
+                <option value="Entertainment">Entertainment</option>
+                <option value="Utilities">Utilities</option>
+            </select>
+
+            <select id="filterAmount" onchange="filterTransactions()">
+                <option value="">All Amounts</option>
+                <option value="500">Less than ₹500</option>
+                <option value="1000">Less than ₹1000</option>
+                <option value="5000">Less than ₹5000</option>
+            </select>
+
+            <input type="date" id="filterDate" onchange="filterTransactions()">
+        </div>
+
+        <!-- Transactions Table -->
+        <table class="transactions">
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Category</th>
+                    <th>Amount (₹)</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="transactionsList">
+                <!-- Transactions will be displayed here -->
+            </tbody>
+        </table>
+
+        <!-- Download Buttons -->
+        <div class="download-buttons">
+            <button onclick="downloadCSV()">Download CSV</button>
+            <button onclick="downloadPDF()">Download PDF</button>
+        </div>
+
+        <!-- Edit Form Modal (Moved Below the Download Buttons) -->
+        <div id="editForm" class="edit-form">
+            <h2>Edit Transaction</h2>
+            <form id="editTransactionForm">
+                <label for="type">Type</label>
+                <select id="type" required>
+                    <option value="income">Income</option>
+                    <option value="expense">Expense</option>
+                </select>
+
+                <label for="category">Category</label>
+                <input type="text" id="category" required>
+
+                <label for="amount">Amount (₹)</label>
+                <input type="number" id="amount" required>
+
+                <label for="dateTime">Date</label>
+                <input type="datetime-local" id="dateTime" required>
+
+                <button type="submit">Save Changes</button>
+                <button type="button" class="cancel-btn" onclick="cancelEdit()">Cancel</button>
+            </form>
+        </div>
+
+        <!-- Graph Section -->
+        <div class="graph-container">
+            <canvas id="transactionsChart"></canvas>
+        </div>
+
+        <button class="back-btn" onclick="window.location.href='mainpage.html'">Back to Dashboard</button>
+    </div>
+
+    <script>
+        let editIndex = -1; // To track the transaction being edited
+
+
+        // Format date to YYYY-MM-DD (ignoring the time part)
+        function formatDate(dateTime) {
+            const dateObj = new Date(dateTime);
+            const day = String(dateObj.getDate()).padStart(2, '0');
+            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const year = dateObj.getFullYear();
+            return `${year}-${month}-${day}`;
+        }
+
+        // Load transactions from localStorage
+        function loadTransactions() {
+            const transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+            const transactionsListElement = document.getElementById('transactionsList');
+            transactionsListElement.innerHTML = ''; // Clear any existing rows
+
+            transactions.forEach((transaction, index) => {
+                const formattedDate = formatDate(transaction.dateTime); // Format the date
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="${transaction.type}">${transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}</td>
+                    <td>${transaction.category}</td>
+                    <td class="${transaction.type}">₹${transaction.amount.toFixed(2)}</td>
+                    <td>${formattedDate}</td>
+                    <td>
+                        <div class="action-btns">
+                            <button class="edit-btn" onclick="editTransaction(${index})">Edit</button> <br> <br>
+                            <button class="delete-btn" onclick="deleteTransaction(${index})">Delete</button>
+                        </div>
+                    </td>
+                `;
+                transactionsListElement.appendChild(row);
+            });
+
+            // Generate graph after loading transactions
+            generateGraph(transactions);
+        }
+
+        // Edit a transaction
+        function editTransaction(index) {
+            const transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+            const transaction = transactions[index];
+
+            document.getElementById('type').value = transaction.type;
+            document.getElementById('category').value = transaction.category;
+            document.getElementById('amount').value = transaction.amount;
+            document.getElementById('dateTime').value = transaction.dateTime.split('T')[0] + 'T' + transaction.dateTime.split('T')[1];
+
+            document.getElementById('editForm').style.display = 'block';
+            editIndex = index;
+
+            document.getElementById('editForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // Cancel the edit form
+        function cancelEdit() {
+            document.getElementById('editForm').style.display = 'none';
+        }
+
+        // Submit the edited transaction
+        document.getElementById('editTransactionForm').addEventListener('submit', function (e) {
+            e.preventDefault(); // Prevent form submission
+
+            const transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+            // Get the updated details from the form
+            const updatedTransaction = {
+                type: document.getElementById('type').value,
+                category: document.getElementById('category').value,
+                amount: parseFloat(document.getElementById('amount').value),
+                dateTime: document.getElementById('dateTime').value
+            };
+
+            // Update the transaction in the array
+            transactions[editIndex] = updatedTransaction;
+
+            // Save updated transactions back to localStorage
+            localStorage.setItem('transactions', JSON.stringify(transactions));
+
+            // Reload the transactions list and hide the edit form
+            loadTransactions();
+            cancelEdit();
+        });
+
+        // Delete a transaction
+        function deleteTransaction(index) {
+            const transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+            transactions.splice(index, 1); // Remove the transaction at the given index
+
+            // Save updated transactions to localStorage
+            localStorage.setItem('transactions', JSON.stringify(transactions));
+
+            // Reload the transactions list
+            loadTransactions();
+        }
+        function downloadCSV() {
+            const transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+            let csvContent = 'Type,Category,Amount (₹),Date\n'; // CSV header
+
+            transactions.forEach(transaction => {
+                const formattedDate = formatDate(transaction.dateTime);
+                csvContent += `${transaction.type},${transaction.category},Rs.${transaction.amount.toFixed(2)},${formattedDate}\n`;
+            });
+
+            // Create a Blob from the CSV content
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+
+            // Create a download link for the Blob
+            if (link.download !== undefined) {
+                const url = URL.createObjectURL(blob);
+                link.setAttribute('href', url);
+                link.setAttribute('download', 'transactions.csv');
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link); // Clean up the DOM
+            }
+        }
+
+        // download PDF
+        function downloadPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            const transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+            let yPosition = 10;
+
+            // Title
+            doc.setFontSize(18);
+            doc.text('Transactions Report', 10, yPosition);
+            yPosition += 10;
+
+            // Table header
+            doc.setFontSize(12);
+            doc.text('Type', 10, yPosition);
+            doc.text('Category', 40, yPosition);
+            doc.text('Amount (Rs.)', 120, yPosition);
+            doc.text('Date', 170, yPosition);
+            yPosition += 10;
+
+            // Table rows
+            transactions.forEach(transaction => {
+                const formattedDate = formatDate(transaction.dateTime);
+                doc.text(transaction.type, 10, yPosition);
+                doc.text(transaction.category, 40, yPosition);
+                doc.text(`Rs.${transaction.amount.toFixed(2)}`, 120, yPosition);
+                doc.text(formattedDate, 170, yPosition);
+                yPosition += 10;
+            });
+
+            // Save PDF
+            doc.save('transactions.pdf');
+        }
+
+
+        let chartInstance = null; // Keep track of the chart instance
+
+        // Filter transactions based on selected criteria
+        function filterTransactions() {
+            const transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+            const typeFilter = document.getElementById('filterType').value.toLowerCase();
+            const categoryFilter = document.getElementById('filterCategory').value.toLowerCase();
+            const amountFilter = parseFloat(document.getElementById('filterAmount').value);
+            const dateFilter = document.getElementById('filterDate').value;
+
+            const filteredTransactions = transactions.filter(transaction => {
+                const matchType = typeFilter ? transaction.type.toLowerCase() === typeFilter : true;
+                const matchCategory = categoryFilter ? transaction.category.toLowerCase() === categoryFilter : true;
+                const matchAmount = amountFilter ? transaction.amount <= amountFilter : true;
+                const matchDate = dateFilter ? formatDate(transaction.dateTime) === dateFilter : true;
+
+                return matchType && matchCategory && matchAmount && matchDate;
+            });
+
+            // Update the table with filtered transactions
+            const transactionsListElement = document.getElementById('transactionsList');
+            transactionsListElement.innerHTML = '';
+            filteredTransactions.forEach((transaction, index) => {
+                const formattedDate = formatDate(transaction.dateTime);
+                const row = document.createElement('tr');
+                row.innerHTML = `
+            <td class="${transaction.type}">${transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}</td>
+            <td>${transaction.category}</td>
+            <td class="${transaction.type}">₹${transaction.amount.toFixed(2)}</td>
+            <td>${formattedDate}</td>
+            <td>
+                <div class="action-btns">
+                    <button class="edit-btn" onclick="editTransaction(${index})">Edit</button>
+                    <button class="delete-btn" onclick="deleteTransaction(${index})">Delete</button>
+                </div>
+            </td>
+        `;
+                transactionsListElement.appendChild(row);
+            });
+
+            // Generate graph for filtered transactions
+            generateGraph(filteredTransactions);
+        }
+
+        // Generate the pie chart based on the transactions data
+        function generateGraph(transactions) {
+            const incomeTotal = transactions.filter(transaction => transaction.type === 'income').reduce((sum, transaction) => sum + transaction.amount, 0);
+            const expenseTotal = transactions.filter(transaction => transaction.type === 'expense').reduce((sum, transaction) => sum + transaction.amount, 0);
+
+            // Prepare chart data
+            const data = {
+                labels: ['Income', 'Expense'],
+                datasets: [{
+                    data: [incomeTotal, expenseTotal],
+                    backgroundColor: ['green', 'red'],
+                    borderColor: ['#009900', '#990000'],
+                    borderWidth: 1
+                }]
+            };
+
+            const ctx = document.getElementById('transactionsChart').getContext('2d');
+
+            // Destroy the previous chart if it exists
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            // Create the chart
+            chartInstance = new Chart(ctx, {
+                type: 'pie',
+                data: data,
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function (tooltipItem) {
+                                    return tooltipItem.label + ': ₹' + tooltipItem.raw.toFixed(2);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initialize page
+        loadTransactions();
+    </script>
+</body>
+
+</html>

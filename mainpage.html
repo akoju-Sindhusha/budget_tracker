@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Budget Tracker</title>
+    <!-- css file -->
+    <link rel="stylesheet" href="file1.css">
+    <!-- fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Arvo:ital,wght@0,400;0,700;1,400;1,700&family=Bellefair&family=Edu+AU+VIC+WA+NT+Pre:wght@400..700&family=Exo+2:ital,wght@0,100..900;1,100..900&family=Happy+Monkey&family=Kalam:wght@300;400;700&family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h1 class="glow">Budget Tracker</h1>
+
+        <div class="form-container">
+            <label for="type">Type (Income or Expense) :</label>
+            <select id="type">
+                <option value="income">Income</option>
+                <option value="expense">Expense</option>
+            </select>
+
+            <label for="amount">Amount (₹) :</label>
+            <input type="number" id="amount" placeholder="Enter amount in rupees" required>
+
+            <label for="category">Category :</label>
+            <input type="text" id="category" placeholder="Enter category (e.g. Groceries)" required>
+            <br>
+
+            <button id="addTransactionBtn" onclick="addTransaction()">Add Transaction</button>
+            <button class="view-btn" onclick="window.location.href='transactions.html'">View Transactions</button>
+        </div>
+
+    </div>
+
+    <script>
+        let totalBalance = 0;
+        let transactions = [];
+
+        const totalBalanceElement = document.getElementById('totalBalance');
+        const addTransactionBtn = document.getElementById('addTransactionBtn');
+
+        function loadData() {
+            const storedTransactions = JSON.parse(localStorage.getItem('transactions'));
+            const storedBalance = parseFloat(localStorage.getItem('totalBalance'));
+
+            if (storedTransactions) {
+                transactions = storedTransactions;
+            }
+            if (!isNaN(storedBalance)) {
+                totalBalance = storedBalance;
+            }
+        }
+
+        function saveData() {
+            localStorage.setItem('transactions', JSON.stringify(transactions));
+            localStorage.setItem('totalBalance', totalBalance.toString());
+        }
+
+        function addTransaction() {
+            const type = document.getElementById('type').value;
+            const amount = parseFloat(document.getElementById('amount').value);
+            const category = document.getElementById('category').value;
+
+            if (amount <= 0 || category.trim() === '') {
+                alert('Please enter a valid amount and category');
+                return;
+            }
+
+            const dateTime = new Date().toLocaleString();
+            const transaction = { type, amount, category, dateTime };
+
+            if (type === 'income') {
+                totalBalance += amount;
+            } else {
+                totalBalance -= amount;
+            }
+
+            transactions.push(transaction);
+            saveData();
+
+            document.getElementById('amount').value = '';
+            document.getElementById('category').value = '';
+        }
+
+        loadData();
+    </script>
+</body>
+</html>

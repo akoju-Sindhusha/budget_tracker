@@ -1,0 +1,169 @@
+body {
+  background-image: url(img.jpg);
+  background-repeat: no-repeat;
+  background-size: cover;
+  font-family: Bellefair;
+  margin: 0;
+  padding: 10px;
+}
+.container {
+  margin-left: 3%;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+}
+.form-container {
+  background-color: green;
+  padding: 2%;
+  border-radius: 8px;
+  border: 2px solid white;
+  width: 55%;
+  overflow: none;
+}
+.form-container label {
+  font-size: 19px;
+  font-weight: 500;
+  margin-bottom: 9px;
+  color: white;
+}
+.form-container select {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+  background-color: #fafafa;
+}
+.form-container input {
+  width: 96%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid white;
+  border-radius: 4px;
+  font-size: 14px;
+  background-color: #fafafa;
+}
+.form-container button {
+  width: 30%;
+  padding: 10px;
+  background-color: green;
+  color: white;
+  border: 2px solid white;
+
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-left: 33%;
+  font-size: 16px;
+  font-family: Bellefair;
+}
+.form-container button:hover {
+    background-color: white;
+    color: black ;
+}
+.view-btn {
+  border: 2px solid white;
+  font-family: Bellefair;
+  margin-top: 20px;
+  padding: 10px;
+  background-color: #8e44ad;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+}
+.glow {
+  font-size: 50px;
+  color: green;
+  text-align: center;
+  animation: glow 1s ease-in-out infinite alternate;
+}
+
+/* Mobile devices (portrait) */
+@media (max-width: 480px) {
+  .container {
+      width: 90%;
+      padding: 10px;
+  }
+
+  h1.glow {
+      font-size: 2em;
+  }
+
+  .form-container {
+      width: 100%;
+  }
+
+  input,
+  select {
+      width: 100%;
+      font-size: 1.2em;
+      padding: 12px;
+  }
+
+  button {
+      width: 100%;
+  }
+}
+
+/* Tablets (portrait and landscape) */
+@media (max-width: 768px) {
+  .container {
+    margin-left: 7%;
+      width: 85%;
+  }
+
+  h1.glow {
+      font-size: 2.5em;
+  }
+
+  .form-container {
+      width: 100%;
+  }
+
+  input,
+  select {
+      width: 100%;
+      font-size: 1.1em;
+      padding: 12px;
+  }
+
+  button {
+      width: 100%;
+      font-size: 1.2em;
+  }
+}
+
+/* Desktop devices */
+@media (min-width: 1024px) {
+  .container {
+      width: 80%;
+  }
+
+  h1.glow {
+      font-size: 3em;
+  }
+
+  input,
+  select {
+      width: 300px;
+      font-size: 1em;
+  }
+
+  button {
+      width: auto;
+  }
+}
+
+/* Large Screens (for extra large displays) */
+@media (min-width: 1600px) {
+  .container {
+      width: 70%;
+  }
+
+  h1.glow {
+      font-size: 3.5em;
+  }
+}
