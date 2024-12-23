@@ -210,7 +210,7 @@ canvas {
     font-size: xx-large;
   }
   .transactions {
-    width: 76vw;
+    width: 100vw;
     padding: 1%;
   }
   .transactions td {
@@ -226,7 +226,7 @@ canvas {
     display: block;
   }
   .transactions tbody {
-    width: 80vw;
+    width: 100vw;
     max-height: 200px;
   }
 
@@ -261,20 +261,20 @@ canvas {
   h1 {
     font-size: xx-large;
   }
-
-  .transactions th,
-  .transactions td {
-    font-size: 11px;
-    padding: 6px;
+  .transactions {
+    width: 100vw;
+    padding: 1.1%;
   }
-
-  .transactions td,
-  .transactions thead {
-    width: 50%;
+  .transactions thead > tr > th {
+    font-size: 8px;
+    width: 9.4vw;
+  }
+  .action-btns {
+    display: block;
   }
 
   .transactions tbody {
-    width: 100%;
+    width: 100vw;
     max-height: 180px;
   }
 
